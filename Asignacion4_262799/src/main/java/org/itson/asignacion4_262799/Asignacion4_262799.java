@@ -89,9 +89,110 @@ public class Asignacion4_262799 {
         }
     }
     
+    public static void insertar(String nombre, String password){
+        String sql = "INSERT INTO clientes(nombre, password) VALUES(?, ?);";
+        try(Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
+            ps.setString(1, nombre);
+            ps.setString(2, password);
+            int filas = ps.executeUpdate();
+            if(filas > 0){
+                try(ResultSet rs = ps.getGeneratedKeys()){
+                    while(rs.next()){
+                        System.out.println("Insertado cliente con ID: " + rs.getInt(1));
+                    }
+                }
+            }
+        }catch(SQLException ex){
+            ex.printStackTrace();
+        }
+    }
+    
+    public static void obtenerClientePorId(int id){
+        String sql = "SELECT id, nombre, password FROM clientes WHERE id =?;";
+        try(Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setInt(1, id);
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
+                    System.out.println("ID: " + rs.getInt("id")
+                    + ", Nombre: " + rs.getString("nombre")
+                    + ", Password: " + rs.getString("password"));
+                }else{
+                    System.out.println("No se encontaron clientes con el ID: " + id);
+                }
+            }
+        }catch(SQLException ex){
+            ex.printStackTrace();
+        }
+    }
+    
+    public static void actualizar(int id, String nombre, String nuevoPassword){
+        String sql = "UPDATE clientes SET nombre=?, password=? WHERE id=?;";
+        try(Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setString(1, nombre);
+            ps.setString(2, nuevoPassword);
+            ps.setInt(3, id);
+            int filas = ps.executeUpdate();
+            if(filas > 0){
+                System.out.println("Cliente actualizado con ID: " + id);
+            }else{
+                System.out.println("No se encontro algun cliente con el ID: " + id);
+            }
+        }catch(SQLException ex){
+            ex.printStackTrace();
+        }
+    }
+    
+    public static void eliminar(int id){
+        String sql = "DELETE FROM clientes WHERE id=?";
+        try(Connection con = getConnection();
+        PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setInt(1, id);
+            int filas = ps.executeUpdate();
+            if(filas > 0){
+                System.out.println("Cliente eliminado con ID: " + id);
+            }else{
+                System.out.println("No se encontro algun cliente con el ID: " + id);
+            }
+        }catch(SQLException ex){
+            ex.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) throws SQLException {
         crearTabla();
+        
+        System.out.println("\n--------Inserciones--------");
+        insertar("Juan", "1234");
+        insertar("Maria", "abcd");
+        insertar("Pedro", "qwerty");
+        insertar("Ana", "pass123");
+        
+        System.out.println("\n--------Todos los clientes--------");
         obtenerClientes();
+        
+        System.out.println("\n--------Consulta por id--------");
+        obtenerClientePorId(1);
+        obtenerClientePorId(3);
+        obtenerClientePorId(99);
+        
+        System.out.println("\n--------Actualizacion--------");
+        actualizar(2, "Maria Actualizada", "newpass");
+        obtenerClientePorId(2);
+        
+        System.out.println("\n--------Eliminacion--------");
+        eliminar(3);
+        obtenerClientes();
+        
+        System.out.println("\n--------Login normal--------");
+        System.out.println("Login Juan/1234: " + login("Juan","1234"));
+        System.out.println("Login Ana/newpass: " + login("Ana","newpass"));
+        System.out.println("Login incorrecto: " + login("Ana","wrong"));
+        System.out.println("\n--------Login seguro--------");
+        System.out.println("Login seguro Juan/1234: " + loginSeguro("Juan", "1234"));
+        System.out.println("Login seguro Ana/newpass: " + loginSeguro("Ana","newpass"));
+        System.out.println("Login seguro incorrecto: " + loginSeguro("Ana","wrong"));
    }
 }
